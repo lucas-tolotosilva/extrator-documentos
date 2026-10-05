@@ -56,6 +56,11 @@ export interface ConfigApi {
   modo_demonstracao: boolean
 }
 
+// Em dev, fica vazio e usa o proxy do Vite (vite.config.ts) para /api.
+// Em produção (Vercel/Netlify), defina VITE_API_BASE_URL com a URL do backend
+// (ex.: https://extrator-documentos-api.onrender.com) nas variáveis de build.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+
 async function tratarResposta<T>(resposta: Response): Promise<T> {
   if (!resposta.ok) {
     let detalhe = `Erro ${resposta.status}`
@@ -72,14 +77,14 @@ async function tratarResposta<T>(resposta: Response): Promise<T> {
 
 export const api = {
   async obterConfig(): Promise<ConfigApi> {
-    const resposta = await fetch('/api/config')
+    const resposta = await fetch(`${API_BASE_URL}/api/config`)
     return tratarResposta(resposta)
   },
 
   async enviarDocumentos(arquivos: File[]): Promise<Documento[]> {
     const formData = new FormData()
     arquivos.forEach((arquivo) => formData.append('arquivos', arquivo))
-    const resposta = await fetch('/api/documentos/upload', {
+    const resposta = await fetch(`${API_BASE_URL}/api/documentos/upload`, {
       method: 'POST',
       body: formData,
     })
@@ -90,17 +95,17 @@ export const api = {
     const params = new URLSearchParams()
     if (filtros?.status) params.set('status', filtros.status)
     if (filtros?.fornecedor) params.set('fornecedor', filtros.fornecedor)
-    const resposta = await fetch(`/api/documentos?${params.toString()}`)
+    const resposta = await fetch(`${API_BASE_URL}/api/documentos?${params.toString()}`)
     return tratarResposta(resposta)
   },
 
   async obterDocumento(id: number): Promise<Documento> {
-    const resposta = await fetch(`/api/documentos/${id}`)
+    const resposta = await fetch(`${API_BASE_URL}/api/documentos/${id}`)
     return tratarResposta(resposta)
   },
 
   async atualizarDocumento(id: number, dados: DocumentoUpdatePayload): Promise<Documento> {
-    const resposta = await fetch(`/api/documentos/${id}`, {
+    const resposta = await fetch(`${API_BASE_URL}/api/documentos/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dados),
@@ -109,16 +114,16 @@ export const api = {
   },
 
   async obterResumoDashboard(): Promise<ResumoDashboard> {
-    const resposta = await fetch('/api/dashboard/resumo')
+    const resposta = await fetch(`${API_BASE_URL}/api/dashboard/resumo`)
     return tratarResposta(resposta)
   },
 
   urlExportarExcel(): string {
-    return '/api/export/excel'
+    return `${API_BASE_URL}/api/export/excel`
   },
 
   async exportarGoogleSheetsMock(): Promise<{ modo_demonstracao: boolean; mensagem: string; planilha_url_simulada: string }> {
-    const resposta = await fetch('/api/export/google-sheets', { method: 'POST' })
+    const resposta = await fetch(`${API_BASE_URL}/api/export/google-sheets`, { method: 'POST' })
     return tratarResposta(resposta)
   },
 }
