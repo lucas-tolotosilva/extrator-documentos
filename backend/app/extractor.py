@@ -3,7 +3,7 @@
 Por padrão (sem chave de API configurada), usa um extrator heurístico baseado em
 regex — suficiente para a demonstração e totalmente offline/gratuito. Se a
 variável de ambiente GROQ_API_KEY estiver definida, usa um modelo de linguagem
-real (Llama via Groq, gratuito) para uma extração mais robusta. Como alternativa,
+real (modelo aberto via Groq, gratuito) para uma extração mais robusta. Como alternativa,
 ANTHROPIC_API_KEY também é suportada para quem tiver créditos na Anthropic.
 Prioridade: Groq > Anthropic > heurística.
 """
@@ -14,6 +14,10 @@ import json
 import os
 import re
 from dataclasses import dataclass, field
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 CNPJ_REGEX = re.compile(r"\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}")
 VALOR_REGEX = re.compile(r"R\$\s*([\d.]+,\d{2})")
@@ -161,7 +165,7 @@ def _extrair_com_groq(texto: str) -> ResultadoExtracao:
 
     client = Groq()
     resposta = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         max_tokens=1024,
         response_format={"type": "json_object"},
         messages=[{"role": "user", "content": PROMPT_EXTRACAO.format(texto=texto[:6000])}],
