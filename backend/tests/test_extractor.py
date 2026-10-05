@@ -1,9 +1,28 @@
+import pytest
+
 from app.extractor import extrair_documento, modo_demonstracao_ativo
 
 
-def test_modo_demonstracao_ativo_sem_chave(monkeypatch):
+@pytest.fixture(autouse=True)
+def sem_chaves_de_api(monkeypatch):
+    """Garante que os testes do extrator rodem sempre no modo heurístico,
+    mesmo que o ambiente tenha GROQ_API_KEY/ANTHROPIC_API_KEY configuradas."""
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+
+def test_modo_demonstracao_ativo_sem_chave():
     assert modo_demonstracao_ativo() is True
+
+
+def test_modo_demonstracao_inativo_com_groq(monkeypatch):
+    monkeypatch.setenv("GROQ_API_KEY", "chave-fake")
+    assert modo_demonstracao_ativo() is False
+
+
+def test_modo_demonstracao_inativo_com_anthropic(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "chave-fake")
+    assert modo_demonstracao_ativo() is False
 
 
 def test_classifica_nota_fiscal():

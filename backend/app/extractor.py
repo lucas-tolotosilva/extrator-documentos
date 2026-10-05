@@ -2,8 +2,10 @@
 
 Por padrão (sem chave de API configurada), usa um extrator heurístico baseado em
 regex — suficiente para a demonstração e totalmente offline/gratuito. Se a
-variável de ambiente ANTHROPIC_API_KEY (ou OPENAI_API_KEY) estiver definida, usa
-o modelo de linguagem para uma extração mais robusta.
+variável de ambiente GROQ_API_KEY estiver definida, usa um modelo de linguagem
+real (Llama via Groq, gratuito) para uma extração mais robusta. Como alternativa,
+ANTHROPIC_API_KEY também é suportada para quem tiver créditos na Anthropic.
+Prioridade: Groq > Anthropic > heurística.
 """
 
 from __future__ import annotations
@@ -138,16 +140,7 @@ Texto do documento:
 """
 
 
-def _extrair_com_llm(texto: str) -> ResultadoExtracao:
-    import anthropic
-
-    client = anthropic.Anthropic()
-    resposta = client.messages.create(
-        model="claude-sonnet-5",
-        max_tokens=1024,
-        messages=[{"role": "user", "content": PROMPT_EXTRACAO.format(texto=texto[:6000])}],
-    )
-    bruto = resposta.content[0].text.strip()
+def _parsear_resposta_json(bruto: str) -> ResultadoExtracao:
     bruto = re.sub(r"^```(json)?|```$", "", bruto.strip(), flags=re.MULTILINE).strip()
     dados = json.loads(bruto)
 
@@ -163,22 +156,55 @@ def _extrair_com_llm(texto: str) -> ResultadoExtracao:
     )
 
 
+def _extrair_com_groq(texto: str) -> ResultadoExtracao:
+    from groq import Groq
+
+    client = Groq()
+    resposta = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        max_tokens=1024,
+        response_format={"type": "json_object"},
+        messages=[{"role": "user", "content": PROMPT_EXTRACAO.format(texto=texto[:6000])}],
+    )
+    return _parsear_resposta_json(resposta.choices[0].message.content)
+
+
+def _extrair_com_anthropic(texto: str) -> ResultadoExtracao:
+    import anthropic
+
+    client = anthropic.Anthropic()
+    resposta = client.messages.create(
+        model="claude-sonnet-5",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": PROMPT_EXTRACAO.format(texto=texto[:6000])}],
+    )
+    return _parsear_resposta_json(resposta.content[0].text)
+
+
 def modo_demonstracao_ativo() -> bool:
-    return not bool(os.getenv("ANTHROPIC_API_KEY"))
+    return not bool(os.getenv("GROQ_API_KEY") or os.getenv("ANTHROPIC_API_KEY"))
 
 
 def extrair_documento(texto: str) -> ResultadoExtracao:
     """Extrai os campos estruturados do texto do documento.
 
-    Usa o modelo de linguagem quando ANTHROPIC_API_KEY está configurada;
-    caso contrário, cai automaticamente no extrator heurístico (modo demonstração).
+    Usa um modelo de linguagem real quando GROQ_API_KEY (gratuito) ou
+    ANTHROPIC_API_KEY estiver configurada — Groq tem prioridade por ser gratuito.
+    Sem nenhuma das duas, cai automaticamente no extrator heurístico (modo
+    demonstração). Qualquer falha na chamada de API também cai na heurística,
+    para nunca quebrar o upload.
     """
 
-    if modo_demonstracao_ativo():
-        return _extrair_com_heuristica(texto)
+    if os.getenv("GROQ_API_KEY"):
+        try:
+            return _extrair_com_groq(texto)
+        except Exception:  # noqa: BLE001
+            return _extrair_com_heuristica(texto)
 
-    try:
-        return _extrair_com_llm(texto)
-    except Exception:  # noqa: BLE001
-        # Falha na API (rede, chave inválida, etc.) não deve quebrar o upload.
-        return _extrair_com_heuristica(texto)
+    if os.getenv("ANTHROPIC_API_KEY"):
+        try:
+            return _extrair_com_anthropic(texto)
+        except Exception:  # noqa: BLE001
+            return _extrair_com_heuristica(texto)
+
+    return _extrair_com_heuristica(texto)
