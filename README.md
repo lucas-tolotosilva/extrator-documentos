@@ -28,14 +28,18 @@ ou Google Sheets.
 - **Exportação para Excel** (download direto) e **mock de exportação para Google
   Sheets** (sem necessidade de credenciais reais para a demonstração).
 - **Modo demonstração**: funciona 100% sem chave de API, usando um extrator
-  heurístico local (regex). Se a variável `ANTHROPIC_API_KEY` estiver configurada,
-  o sistema usa o modelo de linguagem Claude para uma extração mais robusta,
-  com fallback automático para a heurística em caso de falha.
+  heurístico local (regex). Se a variável `GROQ_API_KEY` estiver configurada
+  (gratuita, via [console.groq.com](https://console.groq.com/keys)), o sistema
+  usa um modelo de linguagem real (Llama 3.3 70B) para uma extração mais
+  robusta, com fallback automático para a heurística em caso de falha.
+  Alternativamente, `ANTHROPIC_API_KEY` também é suportada para quem preferir o
+  Claude (requer créditos pagos na Anthropic).
 
 ## Stack
 
 - **Backend**: Python, FastAPI, SQLAlchemy, SQLite, pdfplumber (leitura de PDF),
-  openpyxl (exportação Excel), Anthropic SDK (extração via IA, opcional), pytest.
+  openpyxl (exportação Excel), Groq SDK (extração via IA gratuita, Llama 3.3),
+  com suporte opcional ao Anthropic SDK (Claude), pytest.
 - **Frontend**: React, TypeScript, Vite, React Router, Recharts (gráficos),
   Vitest + Testing Library.
 
@@ -61,8 +65,13 @@ pytest tests/ -v
 uvicorn app.main:app --reload
 ```
 
-Para usar extração via IA real em vez do modo demonstração, defina a variável de
-ambiente `ANTHROPIC_API_KEY` antes de subir o backend.
+Para usar extração via IA real em vez do modo demonstração, gere uma chave
+gratuita em [console.groq.com/keys](https://console.groq.com/keys) e defina a
+variável de ambiente antes de subir o backend:
+
+```bash
+export GROQ_API_KEY="sua-chave-aqui"
+```
 
 ### Frontend
 
@@ -87,7 +96,7 @@ extrator-documentos/
 │   │   ├── schemas.py         # Schemas Pydantic
 │   │   ├── database.py        # Configuração do SQLite
 │   │   ├── pdf_reader.py      # Extração de texto do PDF (pdfplumber)
-│   │   ├── extractor.py       # Extração heurística + integração opcional com Claude
+│   │   ├── extractor.py       # Extração heurística + integração opcional com Groq/Claude
 │   │   └── routers/           # documentos, dashboard, export
 │   └── tests/                 # Testes pytest (extractor + API)
 ├── frontend/

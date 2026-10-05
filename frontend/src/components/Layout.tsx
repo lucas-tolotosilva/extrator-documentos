@@ -35,7 +35,7 @@ export function Layout() {
       {modoDemonstracao && (
         <div className="banner-demo">
           🧪 Modo demonstração ativo — extração por heurística local, sem custo de API. Configure
-          <code> ANTHROPIC_API_KEY </code> para usar o modelo de linguagem real.
+          <code> GROQ_API_KEY </code> (gratuito) para usar um modelo de linguagem real.
         </div>
       )}
 

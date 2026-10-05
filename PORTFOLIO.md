@@ -5,15 +5,17 @@ automaticamente fornecedor, CNPJ, valor, vencimento e itens, classificando o tip
 de documento e sinalizando campos de baixa confiança para revisão rápida. Inclui
 dashboard de totais por fornecedor/mês e exportação para Excel. Funciona sem
 nenhuma chave de API (modo demonstração com extração heurística) ou com IA real
-(Claude) quando configurada. Resultado para o cliente: um lote de documentos que
-levava 3-4 horas de digitação manual por mês passa a ser processado em minutos,
-com revisão humana concentrada apenas nos campos duvidosos.
+(Llama via Groq, gratuito — ou Claude, opcional) quando configurada. Resultado
+para o cliente: um lote de documentos que levava 3-4 horas de digitação manual
+por mês passa a ser processado em minutos, com revisão humana concentrada
+apenas nos campos duvidosos.
 
 ## Tecnologias
 
 - Python, FastAPI, SQLAlchemy, SQLite
 - pdfplumber (leitura de PDF)
-- Anthropic Claude (extração via IA, com fallback heurístico)
+- Groq (Llama 3.3 70B) para extração via IA gratuita, com fallback heurístico
+  e suporte opcional ao Anthropic Claude
 - openpyxl (exportação Excel)
 - React, TypeScript, Vite, React Router, Recharts
 - Pytest, Vitest + Testing Library
