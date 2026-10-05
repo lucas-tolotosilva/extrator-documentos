@@ -30,7 +30,7 @@ ou Google Sheets.
 - **Modo demonstração**: funciona 100% sem chave de API, usando um extrator
   heurístico local (regex). Se a variável `GROQ_API_KEY` estiver configurada
   (gratuita, via [console.groq.com](https://console.groq.com/keys)), o sistema
-  usa um modelo de linguagem real (Llama 3.3 70B) para uma extração mais
+  usa um modelo de linguagem real (gpt-oss-120b via Groq) para uma extração mais
   robusta, com fallback automático para a heurística em caso de falha.
   Alternativamente, `ANTHROPIC_API_KEY` também é suportada para quem preferir o
   Claude (requer créditos pagos na Anthropic).
@@ -38,7 +38,7 @@ ou Google Sheets.
 ## Stack
 
 - **Backend**: Python, FastAPI, SQLAlchemy, SQLite, pdfplumber (leitura de PDF),
-  openpyxl (exportação Excel), Groq SDK (extração via IA gratuita, Llama 3.3),
+  openpyxl (exportação Excel), Groq SDK (extração via IA gratuita, gpt-oss-120b),
   com suporte opcional ao Anthropic SDK (Claude), pytest.
 - **Frontend**: React, TypeScript, Vite, React Router, Recharts (gráficos),
   Vitest + Testing Library.
@@ -66,12 +66,9 @@ uvicorn app.main:app --reload
 ```
 
 Para usar extração via IA real em vez do modo demonstração, gere uma chave
-gratuita em [console.groq.com/keys](https://console.groq.com/keys) e defina a
-variável de ambiente antes de subir o backend:
-
-```bash
-export GROQ_API_KEY="sua-chave-aqui"
-```
+gratuita em [console.groq.com/keys](https://console.groq.com/keys), copie
+`backend/.env.example` para `backend/.env` e preencha `GROQ_API_KEY`. O backend
+carrega esse arquivo automaticamente (via `python-dotenv`) ao iniciar.
 
 ### Frontend
 
