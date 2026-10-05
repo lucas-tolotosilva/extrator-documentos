@@ -82,6 +82,18 @@ npm run dev    # sobe em http://localhost:5173, já com proxy para a API em :800
 Abra `http://localhost:5173`, vá em **Upload**, envie os PDFs de `/samples` e
 acompanhe o fluxo completo (extração → revisão → dashboard).
 
+## Deploy (demo ao vivo)
+
+- **Backend**: [Render](https://render.com), free tier. Usa o blueprint
+  `render.yaml` na raiz do repo (root dir `backend/`). Variáveis de ambiente:
+  `GROQ_API_KEY` (obrigatória para extração real) e `ALLOWED_ORIGINS` (URL do
+  frontend em produção, ex.: `https://extrator-documentos.vercel.app`).
+  Observação: o free tier do Render não tem disco persistente, então o SQLite
+  reseta a cada reinício do serviço — aceitável para uma demo pública.
+- **Frontend**: [Vercel](https://vercel.com). O `vercel.json` cuida do rewrite
+  de rotas do React Router. Defina a variável de build `VITE_API_BASE_URL` com
+  a URL pública do backend no Render.
+
 ## Estrutura do projeto
 
 ```
